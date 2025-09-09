@@ -6,8 +6,8 @@ const PRECACHE_URLS = [
   // 매니페스트는 쿼리스트링 없이도 캐싱되도록 원본 경로를 precache
   './manifest.webmanifest',
   // 아이콘(인덱스에서 참조하는 파일명 기준)
-  './icon-192-v2.png',
-  './icon-512-v2.png',
+  './icon-192.png',
+  './icon-512.png',
   // 혹시 이전 파일명을 쓰는 경우 대비(둘 다 존재해도 문제 없음)
   './icon_192.png',
   './icon_512.png'
