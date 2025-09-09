@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>2025년 지역자원시설세 계산</title>
+  <meta name="theme-color" content="#0b5" />
+  <link rel="manifest" href="manifest.webmanifest?v=3">
+  <link rel="icon" href="./icon-192-v2.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="./icon-512-v2.png" />
+  <style>
+    :root{ --bg:#ffffff; --card:#f8f9fa; --text:#0b1220; --text-sub:#4b5563; --brand:#0b5; --sum-bg:#e7fff2; --input-bg:#fffbe6; --line:#ddd; --shadow:rgba(0,0,0,.08); --icon:#334155; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;font-size:14.4px;line-height:1.65;}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background-image:radial-gradient(rgba(0,187,85,.08) 1px,transparent 1px);background-size:18px 18px;opacity:.14}
+
+    /* ▶ 상단 바 */
+    .appbar{ position:sticky;top:0;z-index:50; backdrop-filter:saturate(140%) blur(8px); background:color-mix(in oklab,var(--bg) 90%,#000 10%); border-bottom:1px solid var(--line) }
+    .appbar .row{ max-width:none; width:100%; margin:0; padding:10px 16px; display:flex; align-items:center; gap:12px; }
+    .brand{display:none}
+    .app-actions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-left:0; width:100%; justify-content:flex-start; }
+    .icon-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:#000;cursor:pointer;text-decoration:none;font-size:10px;font-weight:800;white-space:nowrap}
+    .icon-btn:hover{filter:brightness(1.04)}
+    .icon-btn--print {background:#eaf2ff;border-color:#cfe0ff;}
+    .icon-btn--law {background:#fdecec;border-color:#f4c6c6;}
+    .icon-btn--wetax {background:#f5eee6;border-color:#e5d9c7;}
+    .icon-btn--install{background:#efe9ff;border-color:#d9ccff;}
+    .ico-printer,.ico-floppy{display:inline-flex;align-items:center;justify-content:center}
+    .ico-printer{width:20px;height:20px}
+    .ico-floppy{width:18px;height:18px}
+    .ico-printer svg,.ico-floppy svg{width:100%;height:100%}
+    .ico-printer .st,.ico-floppy .st{fill:none;stroke:var(--icon);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .ico-floppy .fill{fill:var(--icon)}
+
+    /* Layout */
+    .wrap{max-width:880px;margin:20px auto 90px;padding:0 16px}
+    .page-title{font-size:24px;font-weight:900;text-align:center}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;box-shadow:0 4px 12px var(--shadow);max-width:720px;margin:12px auto}
+    .header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    h2{font-size:14.4px;margin:0}
+    label{display:block;font-size:13.6px;color:#4b5563;margin-bottom:6px}
+    input.num,select{background:#fff;border:1px solid #ccc;padding:6px 8px;border-radius:10px;text-align:center;font-size:12.5px}
+    .row3-inline{display:flex;gap:4px;justify-content:center;margin-top:4px}
+    .row3-inline>div{flex:0 0 154px}
+    .btn{padding:6px 11px;background:var(--brand);color:#fff;border:none;border-radius:12px;cursor:pointer;font-weight:700;font-size:12px}
+
+    /* ✅ 계산 아래 미니 합계 세액 아이콘 박스 */
+    .inline-sum{display:flex;justify-content:center;margin-top:4px}
+    .sum-chip{display:inline-flex;align-items:center;gap:6px;background:var(--sum-bg);padding:6px 10px;border-radius:999px}
+    .sum-chip .label{font-size:12.5px;color:var(--text-sub);font-weight:800}
+    .sum-chip .value{font-size:13.6px;font-weight:900}
+
+    /* 세액산출 정보 표 */
+    .info-table{width:100%;border-collapse:collapse;margin:8px auto;font-size:12.8px;max-width:640px}
+    .info-table td{padding:8px;border-bottom:1px solid var(--line)}
+    .info-table td.label-col{font-weight:800;color:#000;width:160px}
+
+    /* Toast (필요 시) */
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:120px;z-index:60;background:#111827;color:#fff;padding:10px 14px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+    .toast.show{opacity:1;pointer-events:auto}
+
+    /* Print */
+    @media print{
+      @page{size:A4 portrait;margin:8mm}
+      html,body{height:auto}
+      *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      body{font-size:10.5pt;line-height:1.45}
+      .appbar{display:none !important}
+      .wrap{width:180mm; margin:0 auto; padding:0}
+      .page-title{font-size:14pt;margin:2mm 0 4mm;text-align:center}
+      .card{box-shadow:none;padding:8px;margin:0 auto;border-color:#ddd;max-width:170mm}
+      .info-table{max-width:160mm}
+      .info-table td{padding:6px;font-size:10.5pt}
+      .toast{display:none !important}
+    }
+  </style>
+</head>
+<body>
+  <!-- 상단 앱바: 인쇄/저장 · 지방세법(새 링크) · 위택스 · 앱 설치 -->
+  <header class="appbar">
+    <div class="row">
+      <div class="brand"></div>
+      <div class="app-actions">
+        <!-- 1) 인쇄/저장 -->
+        <a class="icon-btn lg icon-btn--print" href="javascript:void(0)" onclick="openPrint()" title="인쇄 / PDF 저장" aria-label="인쇄 미리보기">
+          <span class="ico-printer" aria-hidden="true">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path class="st" d="M7 8V4h10v4M6 17H5a 2 2 0 0 1-2-2v-3a 2 2 0 0 1 2-2h14a 2 2 0 0 1 2 2v3a 2 2 0 0 1 2 2h-1M7 14h10v6H7zM17 11h.01"/></svg>
+          </span>
+          <span class="ico-floppy" aria-hidden="true" style="margin-left:2px">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="2" class="st"/><rect x="6" y="5.5" width="9" height="6" class="st"/><rect x="17" y="6.5" width="3" height="3" class="fill"/><line x1="6" y1="16.5" x2="18" y2="16.5" class="st"/></svg>
+          </span>
+          <span style="font-weight:800; margin-left:4px;">인쇄/저장</span>
+        </a>
+
+        <!-- 2) 지방세법 (새 링크/문구) -->
+        <a class="icon-btn lg icon-btn--law" target="_blank" rel="noopener"
+           href="https://www.law.go.kr/lsSc.do?section=&menuId=1&subMenuId=15&tabMenuId=81&eventGubun=060101&query=%EC%A7%80%EB%B0%A9%EC%84%B8%EB%B2%95#undefined">
+          <span aria-hidden="true">🔍</span> 지방세법
+        </a>
+
+        <!-- 3) 위택스 -->
+        <a class="icon-btn lg icon-btn--wetax" target="_blank" rel="noopener"
+           href="https://www.wetax.go.kr/etq/etp/epi/E070101M01.do" title="위택스 지방세 납부" aria-label="위택스">
+          <span aria-hidden="true">🧾</span> 위택스
+        </a>
+
+        <!-- 4) 앱 설치 -->
+        <button id="install" type="button" class="icon-btn lg icon-btn--install">앱 설치</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="page-title">2025년 지역자원시설세 계산</div>
+
+    <!-- 입력 카드만 유지 -->
+    <div class="card" id="section-input">
+      <div class="header-row">
+        <h2>1. 과세표준 및 배율 입력 <span class="unit">(단위: 원)</span></h2>
+      </div>
+
+      <div class="row3-inline">
+        <div>
+          <label>지역자원시설세 과세표준</label>
+          <input id="과표" class="num" type="text" inputmode="numeric" placeholder="숫자만 입력">
+        </div>
+        <div>
+          <label>배율</label>
+          <select id="배율">
+            <option value="1" selected>1배 (기본)</option>
+            <option value="2">2배</option>
+            <option value="3">3배</option>
+          </select>
+        </div>
+        <div>
+          <label style="visibility:hidden">계산</label>
+          <button class="btn" onclick="calc()">✍️ 계산</button>
+        </div>
+      </div>
+
+      <!-- 계산 아래 미니 합계 세액 아이콘 박스 -->
+      <div class="inline-sum" role="status" aria-live="polite">
+        <div class="sum-chip" title="최종 세액">
+          <span class="label">최종 세액</span>
+          <span class="value" id="sumY_inline">-</span>
+        </div>
+      </div>
+
+      <!-- 세액산출 정보 (세로 라벨) -->
+      <div class="break-wrap" style="margin-top:8px">
+        <details open>
+          <summary>세액산출 정보</summary>
+          <table class="info-table">
+            <tbody id="tbBreak">
+              <tr><td colspan="2" style="text-align:center;color:#555">과세표준 입력 후 ‘계산’을 눌러주세요.</td></tr>
+            </tbody>
+          </table>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    /* ---------- 유틸 ---------- */
+    const $=id=>document.getElementById(id);
+    const setText=(id,v)=>{const el=$(id); if(el) el.textContent=v;}
+    const setHTML=(id,v)=>{const el=$(id); if(el) el.innerHTML=v;}
+    const numOf=id=>Number((($(id)?.value)||'').replace(/,/g,'')||0);
+    const floor10=n=>Math.floor(n/10)*10;
+    const fmt=n=>(Number.isFinite(n)?Math.floor(n).toLocaleString('ko-KR')+'원':'-');
+    function toast(msg){const t=$('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); clearTimeout(toast._timer); toast._timer=setTimeout(()=>t.classList.remove('show'),1500);}
+
+    /* 입력 숫자 콤마 */
+    document.addEventListener('input',e=>{
+      if(e.target.classList.contains('num')){
+        let v=e.target.value.replace(/,/g,'').replace(/[^\d]/g,'');
+        if(v===''){e.target.value='';return;}
+        e.target.value=v.replace(/\B(?=(\d{3})+(?!\d))/g,",");
+      }
+    });
+
+    /* ---------- 간이세율표(엑셀 기준) ---------- */
+    // 세액 = base * rate - minus (음수면 0 처리), 이후 배율 곱하고 10원 절사
+    const BRACKETS=[
+      { base:0,        rate:0.0004, minus:    0 },
+      { base:6000000,  rate:0.0005, minus:  600 },
+      { base:13000000, rate:0.0006, minus: 1900 },
+      { base:26000000, rate:0.0008, minus: 7100 },
+      { base:39000000, rate:0.0010, minus:14900 },
+      { base:64000000, rate:0.0012, minus:27700 }
+    ];
+    function pickBracket(base){let cur=BRACKETS[0]; for(const b of BRACKETS){ if(base>=b.base) cur=b; else break; } return cur;}
+    function calcRawTax(base){ if(!(base>0)) return 0; const b=pickBracket(base); return Math.max(0, Math.floor(base*b.rate - b.minus)); }
+
+    /* ---------- 계산 ---------- */
+    function calc(){
+      const base = numOf('과표');
+      const mult = Number(($('배율')?.value)||1);
+
+      const b = pickBracket(base);
+      const raw = calcRawTax(base);
+      const final = floor10(raw * mult);
+
+      // 인라인 합계 반영
+      setText('sumY_inline', fmt(final));
+
+      // 세액산출 정보 (세로 라벨)
+      const calcBeforeMult = Math.floor((base||0) * b.rate - b.minus);
+      const rateMinusLine = `${(b.rate*100).toFixed(2)}% - ${fmt(b.minus)}`; // 예: 0.10% - 14,900원
+      const rowsBreak = `
+        <tr><td class="label-col">구분</td><td>과표 ${Number(base||0).toLocaleString('ko-KR')}원</td></tr>
+        <tr><td class="label-col">세율</td><td>${rateMinusLine}</td></tr>
+        <tr><td class="label-col">계산세액(배율 전)</td><td>${fmt(calcBeforeMult)}</td></tr>
+        <tr><td class="label-col">최종 세액</td><td>${fmt(final)}</td></tr>
+      `;
+      setHTML('tbBreak', rowsBreak);
+
+      toast('계산 완료');
+    }
+
+    /* 인쇄/저장 */
+    function openPrint(){ window.print(); }
+
+    /* PWA: 서비스워커 등록 + 설치 버튼 동작 */
+    (function(){
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js').catch(console.error);
+      }
+      // 앱 설치 버튼
+      let deferredPrompt;
+      const btn = document.getElementById('install');
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (btn) btn.style.display = 'inline-flex';
+      });
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          if (!deferredPrompt) return;
+          btn.disabled = true;
+          deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+          deferredPrompt = null;
+          btn.style.display = 'none';
+        });
+      }
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      if (isStandalone && btn) btn.style.display = 'none';
+    })();
+  </script>
+</body>
+</html>
